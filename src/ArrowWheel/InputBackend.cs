@@ -5,10 +5,13 @@ internal interface IInputBackend
     bool IsAnyModifierPressed();
     void SendArrowPress(uint virtualKey);
     void SendMouseWheel(int delta);
+    bool TryScrollPowerPointNotes(int delta);
 }
 
 internal sealed class WindowsInputBackend : IInputBackend
 {
+    private readonly PowerPointNotesScroller _powerPointNotesScroller = new();
+
     public bool IsAnyModifierPressed() => NativeMethods.IsAnyModifierPressed();
 
     public void SendArrowPress(uint virtualKey)
@@ -23,4 +26,7 @@ internal sealed class WindowsInputBackend : IInputBackend
     }
 
     public void SendMouseWheel(int delta) => NativeMethods.SendMouseWheel(delta);
+
+    public bool TryScrollPowerPointNotes(int delta) =>
+        _powerPointNotesScroller.TryScroll(delta);
 }

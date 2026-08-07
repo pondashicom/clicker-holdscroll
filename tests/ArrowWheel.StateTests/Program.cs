@@ -57,6 +57,46 @@ Test("長押し中のキーアップでスクロールが停止する", () =>
     Equal(0, input.ArrowCount);
 });
 
+Test("PowerPointノートモードは通常ホイールではなくノートへ送る", () =>
+{
+    var input = new FakeInputBackend();
+    using var manager = CreateManager(input, powerPointNotesMode: true);
+    manager.KeyDown(NativeMethods.VkRight);
+    True(
+        SpinWait.SpinUntil(() => input.PowerPointNotesScrollCount >= 2, 1000),
+        "PowerPoint notes scroll did not start");
+    manager.KeyUp(NativeMethods.VkRight);
+    Equal(0, input.WheelCount);
+    Equal(0, input.ArrowCount);
+});
+
+Test("PowerPointノートが見つからなくても通常画面へ誤送信しない", () =>
+{
+    var input = new FakeInputBackend { PowerPointNotesTargetAvailable = false };
+    using var manager = CreateManager(input, powerPointNotesMode: true);
+    manager.KeyDown(NativeMethods.VkLeft);
+    True(
+        SpinWait.SpinUntil(() => input.PowerPointNotesScrollCount >= 2, 1000),
+        "PowerPoint notes lookup was not attempted");
+    manager.KeyUp(NativeMethods.VkLeft);
+    Equal(0, input.WheelCount);
+    Equal(true, manager.IsInputHealthy);
+});
+
+Test("PowerPointノート送信の例外は安全停止へ移行する", () =>
+{
+    var input = new FakeInputBackend { ThrowOnPowerPointNotesScroll = true };
+    var failureCount = 0;
+    using var manager = CreateManager(
+        input,
+        powerPointNotesMode: true,
+        onFailure: _ => Interlocked.Increment(ref failureCount));
+    manager.KeyDown(NativeMethods.VkRight);
+    True(SpinWait.SpinUntil(() => failureCount == 1, 1000), "notes failure was not reported");
+    Equal(false, manager.IsInputHealthy);
+    Equal(false, manager.IsTracking(NativeMethods.VkRight));
+});
+
 Test("物理キーリピート中も一つの長押しとして扱う", () =>
 {
     var input = new FakeInputBackend();
@@ -213,13 +253,44 @@ Test("Clicker-PONの旧設定を新名称の保存先へ移行する", () =>
     });
 });
 
+Test("PowerPointノートモードを設定に保存して復元する", () =>
+{
+    WithTemporarySettingsPath(path =>
+    {
+        SettingsStore.SaveTo(path, new AppSettings
+        {
+            Enabled = true,
+            PowerPointNotesMode = true
+        });
+        var loaded = SettingsStore.LoadFrom(path).Settings;
+        Equal(true, loaded.Enabled);
+        Equal(true, loaded.PowerPointNotesMode);
+        Equal(2, loaded.SchemaVersion);
+    });
+});
+
+Test("旧スキーマ設定ではPowerPointノートモードを無効で移行する", () =>
+{
+    WithTemporarySettingsPath(path =>
+    {
+        File.WriteAllText(
+            path,
+            "{\"SchemaVersion\":1,\"Enabled\":true," +
+            "\"LongPressMilliseconds\":350,\"ScrollIntervalMilliseconds\":70," +
+            "\"WheelDelta\":120,\"MaxScrollDurationMilliseconds\":30000}");
+        var loaded = SettingsStore.LoadFrom(path).Settings;
+        Equal(false, loaded.PowerPointNotesMode);
+        Equal(2, loaded.SchemaVersion);
+    });
+});
+
 if (failures.Count > 0)
 {
     Console.Error.WriteLine(string.Join(Environment.NewLine, failures));
     return 1;
 }
 
-Console.WriteLine("PASS: state, safety-limit, settings, migration, and stress 17 tests");
+Console.WriteLine("PASS: state, routing, safety-limit, settings, migration, and stress 22 tests");
 return 0;
 
 void Test(string name, Action action)
@@ -253,6 +324,7 @@ static void True(bool actual, string message)
 static ArrowHoldManager CreateManager(
     FakeInputBackend input,
     int maxScrollMilliseconds = 2000,
+    bool powerPointNotesMode = false,
     Action<Exception>? onFailure = null)
 {
     var settings = new AppSettings
@@ -260,7 +332,8 @@ static ArrowHoldManager CreateManager(
         LongPressMilliseconds = 100,
         ScrollIntervalMilliseconds = 20,
         WheelDelta = 120,
-        MaxScrollDurationMilliseconds = maxScrollMilliseconds
+        MaxScrollDurationMilliseconds = maxScrollMilliseconds,
+        PowerPointNotesMode = powerPointNotesMode
     };
     return new ArrowHoldManager(settings, input, onFailure ?? (_ => { }));
 }

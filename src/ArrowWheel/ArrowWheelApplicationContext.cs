@@ -12,6 +12,7 @@ internal sealed class ArrowWheelApplicationContext : ApplicationContext
     private readonly NotifyIcon _notifyIcon;
     private readonly ContextMenuStrip _contextMenu;
     private readonly ToolStripMenuItem _enabledMenuItem;
+    private readonly ToolStripMenuItem _powerPointNotesModeMenuItem;
     private readonly bool _diagnosticMode;
     private KeyboardHook? _keyboardHook;
     private EmergencyHotkeyWindow? _emergencyHotkey;
@@ -35,6 +36,14 @@ internal sealed class ArrowWheelApplicationContext : ApplicationContext
         _enabledMenuItem = new ToolStripMenuItem("有効", null, (_, _) => ToggleEnabled())
         {
             Checked = _enabled,
+            CheckOnClick = false
+        };
+        _powerPointNotesModeMenuItem = new ToolStripMenuItem(
+            "PowerPointノートモード",
+            null,
+            (_, _) => TogglePowerPointNotesMode())
+        {
+            Checked = _settings.PowerPointNotesMode,
             CheckOnClick = false
         };
         _contextMenu = BuildMenu();
@@ -76,7 +85,10 @@ internal sealed class ArrowWheelApplicationContext : ApplicationContext
             throw;
         }
 
-        OperationalLog.Write("startup", $"enabled={_enabled}; version={Application.ProductVersion}");
+        OperationalLog.Write(
+            "startup",
+            $"enabled={_enabled}; powerpointNotesMode={_settings.PowerPointNotesMode}; " +
+            $"version={Application.ProductVersion}");
         if (!string.IsNullOrWhiteSpace(loadResult.Warning))
         {
             OperationalLog.Write("settings-warning", loadResult.Warning);
@@ -90,6 +102,8 @@ internal sealed class ArrowWheelApplicationContext : ApplicationContext
     {
         var menu = new ContextMenuStrip();
         menu.Items.Add(_enabledMenuItem);
+        menu.Items.Add(_powerPointNotesModeMenuItem);
+        menu.Items.Add(new ToolStripSeparator());
 
         var thresholdMenu = new ToolStripMenuItem("長押し判定");
         AddChoice(thresholdMenu, "速い（250 ms）", 250, () => _settings.LongPressMilliseconds,
@@ -219,6 +233,23 @@ internal sealed class ArrowWheelApplicationContext : ApplicationContext
         OperationalLog.Write("enabled", "user");
     }
 
+    private void TogglePowerPointNotesMode()
+    {
+        _settings.PowerPointNotesMode = !_settings.PowerPointNotesMode;
+        _powerPointNotesModeMenuItem.Checked = _settings.PowerPointNotesMode;
+        _holdManager.UpdateSettings(_settings);
+        UpdateStatus();
+        SaveSettings();
+        OperationalLog.Write(
+            "powerpoint-notes-mode",
+            _settings.PowerPointNotesMode ? "enabled" : "disabled");
+
+        var message = _settings.PowerPointNotesMode
+            ? "長押しは、起動中のPowerPoint発表者ツールのノートだけをスクロールします。"
+            : "長押しは、通常のマウスホイールとして動作します。";
+        ShowBalloon(ToolTipIcon.Info, "PowerPointノートモード", message);
+    }
+
     private void EmergencyStop(string reason, bool showBalloon)
     {
         if (_uiInvoker.InvokeRequired)
@@ -304,10 +335,21 @@ internal sealed class ArrowWheelApplicationContext : ApplicationContext
     private void UpdateStatus()
     {
         _enabledMenuItem.Checked = _enabled;
+        _powerPointNotesModeMenuItem.Checked = _settings.PowerPointNotesMode;
         _notifyIcon.Text = StatusText();
     }
 
-    private string StatusText() => _enabled ? "Clicker HoldScroll（有効）" : "Clicker HoldScroll（無効）";
+    private string StatusText()
+    {
+        if (!_enabled)
+        {
+            return "Clicker HoldScroll（無効）";
+        }
+
+        return _settings.PowerPointNotesMode
+            ? "Clicker HoldScroll（有効・PPTノート）"
+            : "Clicker HoldScroll（有効）";
+    }
 
     private void SaveSettings()
     {
@@ -350,6 +392,9 @@ internal sealed class ArrowWheelApplicationContext : ApplicationContext
             "  ← / → を通常の矢印キーとして1回入力します。\n\n" +
             "長押し\n" +
             "  ← は上へ、→ は下へ連続スクロールします。\n\n" +
+            "PowerPointノートモード\n" +
+            "  起動中のPowerPoint発表者ツールを探し、長押しでノートだけをスクロールします。\n" +
+            "  発表者ツールが見つからない場合は、別の画面をスクロールしません。\n\n" +
             "安全機能\n" +
             "  Ctrl+Shift+F12 でいつでも緊急停止できます。\n" +
             "  修飾キー併用、画面ロック、スリープ、入力障害時は安全停止します。\n\n" +

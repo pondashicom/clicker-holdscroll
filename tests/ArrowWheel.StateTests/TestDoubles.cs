@@ -11,17 +11,22 @@ internal interface IInputBackend
     bool IsAnyModifierPressed();
     void SendArrowPress(uint virtualKey);
     void SendMouseWheel(int delta);
+    bool TryScrollPowerPointNotes(int delta);
 }
 
 internal sealed class FakeInputBackend : IInputBackend
 {
     private int _arrowCount;
     private int _wheelCount;
+    private int _powerPointNotesScrollCount;
 
     public int ArrowCount => Volatile.Read(ref _arrowCount);
     public int WheelCount => Volatile.Read(ref _wheelCount);
+    public int PowerPointNotesScrollCount => Volatile.Read(ref _powerPointNotesScrollCount);
     public bool ThrowOnArrow { get; set; }
     public bool ThrowOnWheel { get; set; }
+    public bool ThrowOnPowerPointNotesScroll { get; set; }
+    public bool PowerPointNotesTargetAvailable { get; set; } = true;
 
     public bool IsAnyModifierPressed() => false;
 
@@ -43,5 +48,16 @@ internal sealed class FakeInputBackend : IInputBackend
         }
 
         Interlocked.Increment(ref _wheelCount);
+    }
+
+    public bool TryScrollPowerPointNotes(int delta)
+    {
+        if (ThrowOnPowerPointNotesScroll)
+        {
+            throw new InvalidOperationException("simulated PowerPoint notes scroll failure");
+        }
+
+        Interlocked.Increment(ref _powerPointNotesScrollCount);
+        return PowerPointNotesTargetAvailable;
     }
 }

@@ -23,6 +23,11 @@ internal static class Program
             return RunUiSmokeTest();
         }
 
+        if (args.Contains("--powerpoint-notes-smoke-test", StringComparer.OrdinalIgnoreCase))
+        {
+            return RunPowerPointNotesSmokeTest();
+        }
+
         using var mutex = new Mutex(initiallyOwned: true, MutexName, out var isFirstInstance);
         if (!isFirstInstance)
         {
@@ -102,6 +107,30 @@ internal static class Program
         catch (Exception exception)
         {
             OperationalLog.Write("ui-smoke-test-failed", exception.ToString());
+            return 1;
+        }
+    }
+
+    [SuppressMessage(
+        "Design",
+        "CA1031:Do not catch general exception types",
+        Justification = "診断モードのプロセス終了コードへすべての実機連携障害を変換する境界です。")]
+    private static int RunPowerPointNotesSmokeTest()
+    {
+        try
+        {
+            var foregroundBefore = NativeMethods.GetForegroundWindow();
+            var scroller = new PowerPointNotesScroller();
+            var scrolled = scroller.TryScroll(-120);
+            var foregroundAfter = NativeMethods.GetForegroundWindow();
+            OperationalLog.Write(
+                "powerpoint-notes-smoke-test",
+                $"scrolled={scrolled}; focusUnchanged={foregroundBefore == foregroundAfter}");
+            return scrolled ? 0 : 1;
+        }
+        catch (Exception exception)
+        {
+            OperationalLog.Write("powerpoint-notes-smoke-test-failed", exception.ToString());
             return 1;
         }
     }

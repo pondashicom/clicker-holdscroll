@@ -16,12 +16,14 @@ internal static class NativeMethods
     public const uint VkRight = 0x27;
     public const int WmQuit = 0x0012;
     public const int WmHotKey = 0x0312;
+    public const int WmMouseWheel = 0x020A;
     public const int WmAppReinstallHook = 0x8001;
     public const uint PmNoRemove = 0x0000;
     public const uint ModControl = 0x0002;
     public const uint ModShift = 0x0004;
     public const uint ModNoRepeat = 0x4000;
     public const uint VkF12 = 0x7B;
+    public const uint SmtoAbortIfHung = 0x0002;
 
     private const uint InputMouse = 0;
     private const uint InputKeyboard = 1;
@@ -31,6 +33,7 @@ internal static class NativeMethods
     private const uint LlkhfInjected = 0x00000010;
 
     public delegate IntPtr LowLevelKeyboardProc(int code, IntPtr wParam, IntPtr lParam);
+    public delegate bool EnumWindowsProc(IntPtr window, IntPtr parameter);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr SetWindowsHookExW(
@@ -92,6 +95,54 @@ internal static class NativeMethods
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool UnregisterHotKey(IntPtr window, int id);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool EnumWindows(EnumWindowsProc callback, IntPtr parameter);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool EnumChildWindows(
+        IntPtr parentWindow,
+        EnumWindowsProc callback,
+        IntPtr parameter);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool IsWindow(IntPtr window);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool IsWindowVisible(IntPtr window);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetParent(IntPtr window);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    public static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int GetClassNameW(
+        IntPtr window,
+        [Out] char[] className,
+        int maxCount);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetWindowRect(IntPtr window, out WindowRect rect);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr SendMessageTimeoutW(
+        IntPtr window,
+        uint message,
+        UIntPtr wParam,
+        IntPtr lParam,
+        uint flags,
+        uint timeoutMilliseconds,
+        out UIntPtr result);
 
     public static bool IsInjected(KbdLlHookStruct data) => (data.Flags & LlkhfInjected) != 0;
 
@@ -169,6 +220,15 @@ internal static class NativeMethods
     {
         public int X;
         public int Y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct WindowRect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
     }
 
     [StructLayout(LayoutKind.Sequential)]

@@ -176,7 +176,7 @@ internal sealed class ArrowHoldManager : IDisposable
                 _settings.ScrollIntervalMilliseconds,
                 _settings.ScrollIntervalMilliseconds);
             var delta = hold.WheelDirection * _settings.WheelDelta;
-            sendFailed = !TrySend(() => _input.SendMouseWheel(delta));
+            sendFailed = !TryScroll(delta);
         }
 
         if (sendFailed)
@@ -213,7 +213,7 @@ internal sealed class ArrowHoldManager : IDisposable
             else
             {
                 var delta = hold.WheelDirection * _settings.WheelDelta;
-                sendFailed = !TrySend(() => _input.SendMouseWheel(delta));
+                sendFailed = !TryScroll(delta);
             }
         }
 
@@ -241,6 +241,17 @@ internal sealed class ArrowHoldManager : IDisposable
             return false;
         }
     }
+
+    private bool TryScroll(int delta) => TrySend(() =>
+    {
+        if (_settings.PowerPointNotesMode)
+        {
+            _input.TryScrollPowerPointNotes(delta);
+            return;
+        }
+
+        _input.SendMouseWheel(delta);
+    });
 
     public void CancelAll()
     {

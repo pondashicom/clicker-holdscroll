@@ -2,8 +2,9 @@ namespace ArrowWheel;
 
 internal sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 1;
+    public int SchemaVersion { get; set; } = 2;
     public bool Enabled { get; set; }
+    public bool PowerPointNotesMode { get; set; }
     public int LongPressMilliseconds { get; set; } = 350;
     public int ScrollIntervalMilliseconds { get; set; } = 70;
     public int WheelDelta { get; set; } = 120;
@@ -15,13 +16,14 @@ internal sealed class AppSettings
         ScrollIntervalMilliseconds = Math.Clamp(ScrollIntervalMilliseconds, 20, 1000);
         WheelDelta = Math.Clamp(WheelDelta, 30, 1200);
         MaxScrollDurationMilliseconds = Math.Clamp(MaxScrollDurationMilliseconds, 1000, 120_000);
-        SchemaVersion = 1;
+        SchemaVersion = 2;
     }
 
     public AppSettings Clone() => new()
     {
         SchemaVersion = SchemaVersion,
         Enabled = Enabled,
+        PowerPointNotesMode = PowerPointNotesMode,
         LongPressMilliseconds = LongPressMilliseconds,
         ScrollIntervalMilliseconds = ScrollIntervalMilliseconds,
         WheelDelta = WheelDelta,
