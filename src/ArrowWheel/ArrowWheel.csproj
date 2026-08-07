@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Clicker-HoldScroll</AssemblyName>
+    <RootNamespace>ArrowWheel</RootNamespace>
+    <Version>0.3.1</Version>
+    <Product>Clicker HoldScroll</Product>
+    <Description>左右矢印キーの短押しと長押しを使い分ける常駐ツール</Description>
+  </PropertyGroup>
+</Project>
