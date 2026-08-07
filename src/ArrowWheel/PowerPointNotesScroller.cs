@@ -183,10 +183,10 @@ internal sealed class PowerPointNotesScroller
             return false;
         }
 
-        // 発表者ツールのノートは標準レイアウトで右下にあり、今回の実機でも
-        // この点がノート本文内になることを確認している。座標は画面座標で渡す。
-        var x = rect.Left + (width * 4 / 5);
-        var y = rect.Top + (height * 13 / 20);
+        // 発表者ツールのノートは右下にある。次のスライドを大きくしてノートを
+        // 縮めた場合もノート内に残りやすい点を使う。座標は画面座標で渡す。
+        var x = rect.Left + (width * 9 / 10);
+        var y = rect.Top + (height * 17 / 20);
         var wheelWord = unchecked((ushort)(short)Math.Clamp(delta, short.MinValue, short.MaxValue));
         var wParam = new UIntPtr((uint)wheelWord << 16);
         var packedPoint = unchecked(
