@@ -10,5 +10,12 @@
     <Version>0.4.1</Version>
     <Product>Clicker HoldScroll</Product>
     <Description>左右矢印キーの短押しと長押しを使い分ける常駐ツール</Description>
+    <ApplicationIcon>..\..\assets\clicker-holdscroll.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\assets\clicker-holdscroll.ico"
+                      Link="Assets\clicker-holdscroll.ico"
+                      LogicalName="ArrowWheel.clicker-holdscroll.ico" />
+  </ItemGroup>
 </Project>

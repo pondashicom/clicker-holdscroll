@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1024"
+     height="1024"
+     viewBox="0 0 1024 1024"
+     role="img"
+     aria-labelledby="title desc">
+    <title id="title">Clicker HoldScroll app icon</title>
+    <desc id="desc">Dark rounded square with a cyan frame, cyan left and right chevrons, and a white vertical scroll arrow.</desc>
+
+    <defs>
+        <linearGradient id="cyanFrame" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#65efff"/>
+            <stop offset="55%" stop-color="#22bdf4"/>
+            <stop offset="100%" stop-color="#087fd8"/>
+        </linearGradient>
+
+        <linearGradient id="darkFace" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#343235"/>
+            <stop offset="100%" stop-color="#1b1a1c"/>
+        </linearGradient>
+
+        <linearGradient id="symbolWhite"
+                        gradientUnits="userSpaceOnUse"
+                        x1="0" y1="280" x2="0" y2="740">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#e8edf0"/>
+        </linearGradient>
+
+        <filter id="symbolShadow" x="-25%" y="-25%" width="150%" height="150%">
+            <feDropShadow dx="0" dy="16" stdDeviation="14"
+                          flood-color="#000000" flood-opacity="0.34"/>
+        </filter>
+    </defs>
+
+    <!-- -PON series frame -->
+    <rect x="18" y="18" width="988" height="988" rx="170"
+          fill="url(#cyanFrame)"/>
+
+    <rect x="34" y="34" width="956" height="956" rx="154"
+          fill="#0b0d0f"/>
+
+    <rect x="48" y="48" width="928" height="928" rx="142"
+          fill="url(#darkFace)"
+          stroke="#454247"
+          stroke-width="3"/>
+
+    <!-- Subtle highlight shared with the other -PON icons -->
+    <path d="M190 58 H834
+             C905 58 966 119 966 190
+             V235
+             C934 172 874 132 806 132
+             H218
+             C150 132 90 172 58 235
+             V190
+             C58 119 119 58 190 58 Z"
+          fill="#ffffff"
+          opacity="0.035"/>
+
+    <!-- Left and right clicker keys -->
+    <g fill="none"
+       stroke="url(#cyanFrame)"
+       stroke-width="82"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       filter="url(#symbolShadow)">
+        <path d="M322 332 L186 512 L322 692"/>
+        <path d="M702 332 L838 512 L702 692"/>
+    </g>
+
+    <!-- Long-press vertical scroll -->
+    <g fill="none"
+       stroke="url(#symbolWhite)"
+       stroke-width="74"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       filter="url(#symbolShadow)">
+        <path d="M512 724 V300"/>
+        <path d="M412 402 L512 300 L612 402"/>
+        <path d="M412 622 L512 724 L612 622"/>
+    </g>
+</svg>

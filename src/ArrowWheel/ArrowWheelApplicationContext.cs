@@ -9,6 +9,7 @@ internal sealed class ArrowWheelApplicationContext : ApplicationContext
     private readonly Control _uiInvoker;
     private readonly AppSettings _settings;
     private readonly ArrowHoldManager _holdManager;
+    private readonly Icon _applicationIcon;
     private readonly NotifyIcon _notifyIcon;
     private readonly ContextMenuStrip _contextMenu;
     private readonly ToolStripMenuItem _enabledMenuItem;
@@ -47,9 +48,10 @@ internal sealed class ArrowWheelApplicationContext : ApplicationContext
             CheckOnClick = false
         };
         _contextMenu = BuildMenu();
+        _applicationIcon = LoadApplicationIcon();
         _notifyIcon = new NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = _applicationIcon,
             Text = StatusText(),
             ContextMenuStrip = _contextMenu,
             Visible = !diagnosticMode
@@ -94,6 +96,16 @@ internal sealed class ArrowWheelApplicationContext : ApplicationContext
             OperationalLog.Write("settings-warning", loadResult.Warning);
             ShowBalloon(ToolTipIcon.Info, "安全状態で開始", loadResult.Warning);
         }
+    }
+
+    private static Icon LoadApplicationIcon()
+    {
+        using var stream = typeof(ArrowWheelApplicationContext).Assembly
+            .GetManifestResourceStream("ArrowWheel.clicker-holdscroll.ico")
+            ?? throw new InvalidOperationException("Embedded application icon was not found.");
+
+        using var embeddedIcon = new Icon(stream);
+        return (Icon)embeddedIcon.Clone();
     }
 
     public bool SafetyFeaturesAvailable => _keyboardHook is not null && _emergencyHotkey is not null;
@@ -446,6 +458,7 @@ internal sealed class ArrowWheelApplicationContext : ApplicationContext
         _emergencyHotkey = null;
         _notifyIcon.Visible = false;
         _notifyIcon.Dispose();
+        _applicationIcon.Dispose();
         _contextMenu.Dispose();
         _enabledMenuItem.Dispose();
         _uiInvoker.Dispose();
